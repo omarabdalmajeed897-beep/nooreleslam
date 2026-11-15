@@ -20,14 +20,23 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
 
-      - name: Build Debug APK
+      - name: Locate Project and Build Debug APK
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          PROJECT_FILE=$(find . -maxdepth 3 \( -name "settings.gradle.kts" -o -name "settings.gradle" \) | head -n 1)
+          if [ -z "$PROJECT_FILE" ]; then
+            echo "Project files not found! Please check uploaded folders."
+            exit 1
+          fi
+          PROJECT_DIR=$(dirname "$PROJECT_FILE")
+          echo "Building project inside: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Noor-Islam-App
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: "**/app/build/outputs/apk/debug/app-debug.apk"
